@@ -64,7 +64,7 @@ print ('Accuracy : {0}'.format((preds == Y_train).sum().astype(float) / len(pred
 
 cmap1 = ListedColormap(['green','red'])
 plt.figure(figsize = (12, 8))
-plt.scatter(X_train[:, 0], X_train[:, 1], c = preds == Y_train - 1, s = 50, cmap=cmap1)
+plt.scatter(X_train[:, 0], X_train[:, 1], c = preds == Y_train - 1, cmap=cmap1)
 plt.show()
 
 
@@ -85,5 +85,5 @@ print ('Accuracy : {0}'.format((preds == Y_test).sum().astype(float) / len(preds
 
 cmap1 = ListedColormap(['green','red'])
 plt.figure(figsize = (12, 8))
-plt.scatter(X_test[:, 0], X_test[:, 1], c = preds == Y_test - 1, s = 50, cmap=cmap1)
+plt.scatter(X_test[:, 0], X_test[:, 1], c = preds == Y_test - 1, cmap=cmap1)
 plt.show()
