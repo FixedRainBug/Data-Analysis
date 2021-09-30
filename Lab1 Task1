@@ -1,0 +1,63 @@
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+%matplotlib inline
+from math import fabs
+
+#створюємо синтетичний набір точок
+np.random.seed(0)
+num_points = 400
+A = 2
+B = 5
+noise = np.random.normal(0, 1, num_points)
+X = np.random.uniform(0, 5, num_points)
+Y = A * X + B + noise
+plt.scatter(X, Y, marker = '.', color = 'r')
+
+#робимо графік
+plt.plot(X, A * X + B)
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid()
+plt.show()
+
+
+a = 0
+b = 0
+
+#швидкість навчання
+L = 0.08
+
+
+n = float(len(X))
+
+#лінійна регресія
+while True:
+    D_a_past = D_a
+    D_b_past = D_b
+    Y_pred = a*X + b
+    D_a = (-2/n) * sum(X * (Y - Y_pred))
+    D_b = (-2/n) * sum(Y - Y_pred)
+    a = a - L * D_a
+    b = b - L * D_b
+    if fabs(D_a - D_a_past)<0.0001 or (fabs(D_b - D_b_past)<0.0001):
+        break;
+
+Y_pred = a*X + b
+
+
+#виводимо результати
+plt.show()
+
+plt.scatter(X, Y, marker = '.', color = 'r')
+plt.plot(X, Y_pred, color='green')
+
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid()
+plt.show()
+
+print ('A start: ', A)
+print ('A predict: ', a)
+print ('B start: ', B)
+print ('B predict: ', b)
