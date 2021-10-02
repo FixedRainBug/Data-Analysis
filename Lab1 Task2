@@ -1,89 +1,55 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib.colors import ListedColormap
+num_points = 300
+a0=np.array([0,0])
+b0=0
+lr_a=0.01
+lr_b=0.1
+mean_1 = [4, 5]
+cov_1 = [[1, 0], [0, 1]]
+x_1 = np.random.multivariate_normal(mean_1, cov_1, num_points)
+mean_2 = [1, 2]
+cov_2 = [[2, 0], [0, 2]]
+x_2 = np.random.multivariate_normal(mean_2, cov_2, num_points)
 
-#выбираем количество точек и размер тестового датасета
-num_dots = 500
-train_size = math.ceil(0.8*num_dots)
+plt.scatter(x_1[:, 0], x_1[:, 1], marker = '^', color='orange')
+plt.scatter(x_2[:, 0], x_2[:, 1], marker = 'o', color='brown')
 
-#генерируем датасет
-x = np.random.multivariate_normal([3, 3], [[2, .3],[.3, 2]], num_dots)
-y = np.random.multivariate_normal([6, 7], [[2, .3],[.3, 2]], num_dots)
 
-#разбиваем датасет на тренировочный и тестовый, создаём тренировочный и тестовый набор классов
-X_train = np.vstack((x[:train_size], y[:train_size])).astype(np.float32)
-Y_train = np.hstack((np.zeros(train_size), np.ones(train_size)))
-X_test = np.vstack((x[train_size:], y[train_size:])).astype(np.float32)
-Y_test = np.hstack((np.zeros(num_dots-train_size), np.ones(num_dots-train_size)))
-
-#сигмоида
 def sigmoid(value):
     return 1 / (1 + np.exp(-value))
 
-#функция логарифмического правдоподобия
-def log_likelihood(features, target, weights):
-    scores = np.dot(features, weights)
-    res = np.sum( target*scores - np.log(1 + np.exp(scores)) )
-    return res
-
-#функция логистической регрессии
-def logistic_regression(features, target, epoches, learning_rate):
-    intercept = np.ones((features.shape[0], 1))
-    features = np.hstack((intercept, features))
-        
-    weights = np.zeros(features.shape[1])
-    
-    for epoch in range(epoches):
-        scores = np.dot(features, weights)
-        predictions = sigmoid(scores)
-
-        output_error_signal = target - predictions
-        gradient = np.dot(features.T, output_error_signal)
-        weights = weights + learning_rate * gradient
-
-        if epoch % 10000 == 0:
-            log_likelihood(features, target, weights)
-        
-    return weights
+def grad(x, y, iters, lr_a, lr_b):
+    a = a0
+    b = b0
+    for i in range(iters):
+        f = sigmoid(x.dot(a) + b)
+        da = np.dot(x.T, (f - y))/x.shape[0]
+        db = (f - y).mean()
+        a = a - lr_a * da
+        b = b - lr_b * db
+    return a, b
+#prediction func
+def predict(x, a, b):
+    predict = np.zeros(x.shape[0])
+    f = sigmoid(x.dot(a) + b)
+    for i in range(x.shape[0]):
+        if(f[i] >= 0.5):
+            predict[i] = 1
+    return predict
 
 
+iters = 1000
 
-#будуємо графік
-plt.figure(figsize=(14,10))
-plt.scatter(X_train[:, 0], X_train[:, 1], c = Y_train)
+x = np.concatenate([x_1,x_2])
+y = np.hstack((np.array([0] * num_points), np.array([1]*num_points)))
 
-#опрацьовуємо тренувальний датасет
-weights = logistic_regression(X_train, Y_train, epoches = 10000, learning_rate = 0.01)
+a, b = grad(x, y, iters,  lr_a, lr_b)
+res = predict(x,a,b)
+print("Accuracy: ", 1 - abs(y-res).mean())
 
-data_with_intercept = np.hstack((np.ones((X_train.shape[0], 1)), X_train))
-final_scores = np.dot(data_with_intercept, weights)
-preds = np.round(sigmoid(final_scores))
-
-#рахуємо точність
-print ('Accuracy : {0}'.format((preds == Y_train).sum().astype(float) / len(preds)))
-
-cmap1 = ListedColormap(['green','red'])
-plt.figure(figsize = (12, 8))
-plt.scatter(X_train[:, 0], X_train[:, 1], c = preds == Y_train - 1, cmap=cmap1)
-plt.show()
-
-
-
-#будуємо графік
-plt.figure(figsize=(14,10))
-plt.scatter(X_test[:, 0], X_test[:, 1], c = Y_test)
-
-#опрацьовуємо тестовий датасет
-weights = logistic_regression(X_test, Y_test,  epoches = 10000, learning_rate = 0.01)
-
-data_with_intercept = np.hstack((np.ones((X_test.shape[0], 1)), X_test))
-final_scores = np.dot(data_with_intercept, weights)
-preds = np.round(sigmoid(final_scores))
-
-#рахуємо точність
-print ('Accuracy : {0}'.format((preds == Y_test).sum().astype(float) / len(preds)))
-
-cmap1 = ListedColormap(['green','red'])
-plt.figure(figsize = (12, 8))
-plt.scatter(X_test[:, 0], X_test[:, 1], c = preds == Y_test - 1, cmap=cmap1)
+plt.figure(figsize=(15,11))
+plt.plot(x[:,0][res==0], x[:,1][res==0], 'r.')
+plt.plot(x[:,0][res==1], x[:,1][res==1], 'b.')
+plt.xlabel('X')
+plt.ylabel('Y')
+plt.grid()
 plt.show()
